@@ -1,14 +1,22 @@
-import React, { useContext, useEffect, useState } from "react";
+import React, { useContext, useEffect } from "react";
 import { Context } from "../store/appContext";
-import { Link, useNavigate } from "react-router-dom";
-
+import { useNavigate } from "react-router-dom";
 
 export const Private = () => {
-    
-    return(
+    const { store, actions } = useContext(Context);
+    const navigate = useNavigate();
+
+    useEffect(() => {
+        if (!store.accessToken) {
+            navigate("/login");
+        } else {
+            actions.getUser();
+        }
+    }, []);
+
+    return (
         <div>
             Hello Traveler!
         </div>
     );
-
 };

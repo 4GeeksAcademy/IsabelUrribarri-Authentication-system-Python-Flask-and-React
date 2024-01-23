@@ -3,7 +3,8 @@ This module takes care of starting the API Server, Loading the DB and Adding the
 """
 import os
 from flask import Flask, request, jsonify, url_for, send_from_directory
-from flask_jwt_extended import JWTManager
+from flask_jwt_extended import JWTManager,jwt_required, get_jwt_identity
+from api.models import User
 from flask_migrate import Migrate
 from flask_swagger import swagger
 from flask_cors import CORS
@@ -52,6 +53,14 @@ app.register_blueprint(api, url_prefix='/api')
 def handle_invalid_usage(error):
     return jsonify(error.to_dict()), error.status_code
 
+# Ruta protegida con JWT
+@api.route('/private', methods=['GET'])
+@jwt_required()
+def get_private():
+    current_user_email = get_jwt_identity()
+    user = User.query.filter_by(email=current_user_email).first()
+    return jsonify({"message": f"Hello {user.email}! This is a private view."}), 200
+
 # generate sitemap with all your endpoints
 @app.route('/')
 def sitemap():
@@ -67,6 +76,7 @@ def serve_any_other_file(path):
     response = send_from_directory(static_file_dir, path)
     response.cache_control.max_age = 0 # avoid cache memory
     return response
+
 
 
 # this only runs if `$ python src/main.py` is executed

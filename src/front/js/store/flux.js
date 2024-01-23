@@ -71,34 +71,33 @@ const getState = ({ getStore, getActions, setStore }) => {
 				}
 			},
 
+
 			getUser: async () => {
-				const resp = await fetch(process.env.BACKEND_URL + "api/private", {
-					method: 'GET',
-					headers: {
-						"Content-Type": "application/json",
-						"Authorization": "Bearer " + localStorage.getItem('access_token') // ⬅⬅⬅ authorization token
+				try {
+					const resp = await fetch(process.env.BACKEND_URL + "api/private", {
+						method: 'GET',
+						headers: {
+							"Content-Type": "application/json",
+							"Authorization": "Bearer " + localStorage.getItem('access_token')
+						}
+					});
+
+					if (!resp.ok) {
+						// Si hay un problema en la solicitud, muestra un mensaje de error
+						throw Error("There was a problem in the login request");
+					} else if (resp.status === 403) {
+						// Si el token es inválido o está ausente, redirige a la página de inicio de sesión
+						throw Error("Missing or invalid token");
+					} else {
+						// Si todo está bien, obtén la información del usuario
+						const data = await resp.json();
+						console.log("This is the data you requested", data);
+						return data;
 					}
-				})
-
-				console.log(localStorage.getItem('access_token'))
-				const data = await resp.json();
-				console.log("This is the data you requested", data);
-				
-				return data
-
-				if (!resp.ok) throw Error("There was a problem in the login request")
-
-				else if (resp.status === 403) {
-					throw Error("Missing or invalid token");
+				} catch (error) {
+					console.log("Error getting user information", error);
 				}
-				else {
-					const data = await resp.json();
-					console.log("This is the data you requested", data);
-					return data
-				}
-
 			},
-
 
 			syncStoreToLocalStorage: () => {
 				setStore({ 'accessToken': localStorage.getItem('access_token') })
